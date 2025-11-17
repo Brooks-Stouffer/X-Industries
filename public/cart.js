@@ -208,6 +208,282 @@ document.addEventListener("DOMContentLoaded", () => {
       location.reload();
     }
   };
+  // Clear cart function with styled popup
+  window.clearCart = function () {
+    const currentCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    // Show styled popup if cart is already empty
+    if (currentCart.length === 0) {
+      showEmptyCartPopup();
+      return;
+    }
+
+    // Create confirmation overlay
+    const confirmationOverlay = document.createElement("div");
+    confirmationOverlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+  `;
+
+    const confirmationPopup = document.createElement("div");
+    confirmationPopup.style.cssText = `
+    background-color: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    text-align: center;
+    animation: slideIn 0.3s ease-out;
+  `;
+
+    confirmationPopup.innerHTML = `
+    <div style="color: #e74c3c; font-size: 48px; margin-bottom: 20px;">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <h2 style="color: #e74c3c; margin: 0 0 10px 0;">Clear Cart?</h2>
+    <p style="margin: 20px 0; font-size: 16px; color: #666;">
+      Are you sure you want to remove all items from your cart? This action cannot be undone.
+    </p>
+    <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
+      <button id="cancelClearBtn" style="
+        background-color: #95a5a6;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: opacity 0.3s ease;
+      ">Cancel</button>
+      <button id="confirmClearBtn" style="
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: opacity 0.3s ease;
+      ">Clear Cart</button>
+    </div>
+  `;
+
+    // Add animation
+    const style = document.createElement("style");
+    style.textContent = `
+    @keyframes slideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+  `;
+    document.head.appendChild(style);
+
+    confirmationOverlay.appendChild(confirmationPopup);
+    document.body.appendChild(confirmationOverlay);
+
+    // Add hover effects
+    const cancelBtn = document.getElementById("cancelClearBtn");
+    const confirmBtn = document.getElementById("confirmClearBtn");
+
+    cancelBtn.addEventListener("mouseenter", () => {
+      cancelBtn.style.opacity = "0.8";
+    });
+    cancelBtn.addEventListener("mouseleave", () => {
+      cancelBtn.style.opacity = "1";
+    });
+
+    confirmBtn.addEventListener("mouseenter", () => {
+      confirmBtn.style.opacity = "0.8";
+    });
+    confirmBtn.addEventListener("mouseleave", () => {
+      confirmBtn.style.opacity = "1";
+    });
+
+    // Handle cancel button
+    cancelBtn.addEventListener("click", () => {
+      document.body.removeChild(confirmationOverlay);
+    });
+
+    // Handle confirm button
+    confirmBtn.addEventListener("click", () => {
+      // Clear the cart
+      localStorage.removeItem("cart");
+      localStorage.setItem("cartCount", 0);
+
+      // Remove confirmation popup
+      document.body.removeChild(confirmationOverlay);
+
+      // Show success popup
+      showClearSuccessPopup();
+    });
+
+    // Close popup on overlay click
+    confirmationOverlay.addEventListener("click", (e) => {
+      if (e.target === confirmationOverlay) {
+        document.body.removeChild(confirmationOverlay);
+      }
+    });
+
+    // Helper function - Success popup after clearing cart
+    function showClearSuccessPopup() {
+      const successOverlay = document.createElement("div");
+      successOverlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    `;
+
+      const successPopup = document.createElement("div");
+      successPopup.style.cssText = `
+      background-color: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      text-align: center;
+      animation: slideIn 0.3s ease-out;
+    `;
+
+      successPopup.innerHTML = `
+      <div style="color: #27ae60; font-size: 48px; margin-bottom: 20px;">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h2 style="color: #27ae60; margin: 0 0 10px 0;">Cart Cleared!</h2>
+      <p style="margin: 20px 0; font-size: 16px; color: #666;">
+        Your shopping cart has been cleared successfully.
+      </p>
+      <button id="successOkBtn" style="
+        background-color: #2029c3;
+        color: white;
+        border: none;
+        padding: 12px 40px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 20px;
+        transition: opacity 0.3s ease;
+      ">Continue Shopping</button>
+    `;
+
+      successOverlay.appendChild(successPopup);
+      document.body.appendChild(successOverlay);
+
+      // Add hover effect
+      const okBtn = document.getElementById("successOkBtn");
+      okBtn.addEventListener("mouseenter", () => {
+        okBtn.style.opacity = "0.8";
+      });
+      okBtn.addEventListener("mouseleave", () => {
+        okBtn.style.opacity = "1";
+      });
+
+      // Handle button click - RELOAD THE PAGE
+      okBtn.addEventListener("click", () => {
+        window.location.reload();
+      });
+
+      // Close on overlay click - RELOAD THE PAGE
+      successOverlay.addEventListener("click", (e) => {
+        if (e.target === successOverlay) {
+          window.location.reload();
+        }
+      });
+    }
+
+    // Helper function - Popup for when cart is already empty
+    function showEmptyCartPopup() {
+      const emptyOverlay = document.createElement("div");
+      emptyOverlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    `;
+
+      const emptyPopup = document.createElement("div");
+      emptyPopup.style.cssText = `
+      background-color: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      text-align: center;
+      animation: slideIn 0.3s ease-out;
+    `;
+
+      emptyPopup.innerHTML = `
+      <div style="color: #f39c12; font-size: 48px; margin-bottom: 20px;">
+        <i class="fas fa-shopping-cart"></i>
+      </div>
+      <h2 style="color: #f39c12; margin: 0 0 10px 0;">Cart is Empty!</h2>
+      <p style="margin: 20px 0; font-size: 16px; color: #666;">
+        Your cart is already empty. Add some items to get started!
+      </p>
+      <button id="emptyOkBtn" style="
+        background-color: #2029c3;
+        color: white;
+        border: none;
+        padding: 12px 40px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 20px;
+        transition: opacity 0.3s ease;
+      ">Continue Shopping</button>
+    `;
+
+      emptyOverlay.appendChild(emptyPopup);
+      document.body.appendChild(emptyOverlay);
+
+      // Add hover effect
+      const okBtn = document.getElementById("emptyOkBtn");
+      okBtn.addEventListener("mouseenter", () => {
+        okBtn.style.opacity = "0.8";
+      });
+      okBtn.addEventListener("mouseleave", () => {
+        okBtn.style.opacity = "1";
+      });
+
+      // Handle button click
+      okBtn.addEventListener("click", () => {
+        document.body.removeChild(emptyOverlay);
+      });
+
+      // Close on overlay click
+      emptyOverlay.addEventListener("click", (e) => {
+        if (e.target === emptyOverlay) {
+          document.body.removeChild(emptyOverlay);
+        }
+      });
+    }
+  };
 
   // Increase quantity by 1 with stock validation
   window.increaseAmount = function (productId) {
